@@ -1,30 +1,29 @@
+// Package genius provides API client to genius and allow to fetch lyrics and
+// information about artists and songs.
+//
+// See details in https://docs.genius.com.
 package genius
 
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/daskol/go.lyrics/logging"
 )
-
-type loggerWriter struct{}
-
-func (l *loggerWriter) Write(p []byte) (n int, err error) {
-	return len(p), nil
-}
 
 type API struct {
 	baseURL url.URL
 	client  http.Client
-	logger  *log.Logger
+	logger  logging.Logger
 	token   string
 }
 
-func New(token string, logger *log.Logger) *API {
+func New(token string, logger logging.Logger) *API {
 	if logger == nil {
-		logger = log.New(&loggerWriter{}, "", 0)
+		logger = logging.Default()
 	}
 
 	api := &API{}
@@ -74,7 +73,7 @@ func (a *API) GetArtist(id int) (*Artist, error) {
 	var url url.URL = a.baseURL
 	url.Path = "/artists/" + strconv.Itoa(id)
 
-	a.logger.Printf("genius: fetch artist info: id=%d", id)
+	a.logger.Debugf("genius: fetch artist info: id=%d", id)
 
 	if obj, err := a.request(url.String()); err != nil {
 		return nil, err
@@ -95,7 +94,7 @@ func (a *API) getArtistSongs(id, perPage, page int) ([]Song, error) {
 	url.Path = "/artists/" + strconv.Itoa(id) + "/songs"
 	url.RawQuery = params.Encode()
 
-	a.logger.Printf("genius: fetch page of songs: page=%d", page)
+	a.logger.Debugf("genius: fetch page of songs: page=%d", page)
 
 	if obj, err := a.request(url.String()); err != nil {
 		return nil, err
@@ -111,7 +110,7 @@ func (a *API) GetArtistSongs(id int) ([]Song, error) {
 	var err error
 	var allSongs, songs []Song
 
-	a.logger.Printf("genius: start fetching of all songs for artist %d", id)
+	a.logger.Debugf("genius: start fetching of all songs for artist %d", id)
 
 	for page := 1; ; page++ {
 		if songs, err = a.getArtistSongs(id, perPage, page); err != nil {
