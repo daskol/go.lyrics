@@ -50,7 +50,7 @@ func main() {
 
 	logger.Infof("create instance of lyrics fetcher")
 
-	if fetcher, err := NewLyricsFetcher(accessToken, *outdir); err != nil {
+	if fetcher, err = NewLyricsFetcher(accessToken, *outdir); err != nil {
 		logger.Fatalf("failed to intantiate lyrics fetcher: %s", err)
 	}
 
